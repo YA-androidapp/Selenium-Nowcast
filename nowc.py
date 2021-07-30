@@ -1,6 +1,6 @@
 from datetime import datetime
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageDraw
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
@@ -11,7 +11,8 @@ import pyderman
 import sys
 
 
-area_size = 4 * 60 # pixel (60pixel = 500m)
+# pixel (60pixel = 500m)
+area_size = 2 * 60 # 経緯度を中心に2km四方
 browser_name = 'firefox'
 image_ext = 'png'
 lat = 35.681236
@@ -74,9 +75,8 @@ def get_key(d, val):
     return keys[0]
   return '-1'
 
-def get_forecasts(imagename, map_image):
+def get_forecasts(imagename, filename, map_image):
   im = Image.open(BytesIO(map_image))
-  # print('im.size', im.size)
   center_x, center_y = math.ceil(im.size[0] / 2) - 1, math.ceil(im.size[1] / 2) - 1
   max_rain = '-1'
   for y in range(center_y - area_size, center_y + area_size):
@@ -86,11 +86,12 @@ def get_forecasts(imagename, map_image):
       rain = get_key(notes, rgba)
       if int(max_rain) < int(rain):
         max_rain = rain
-  return {imagename: max_rain.replace('-1', '-')}
 
-def save_image_file(filename, map_image):
-    with open(filename, 'wb') as f:
-      f.write(map_image)
+  draw = ImageDraw.Draw(im)
+  draw.rectangle((center_x - area_size, center_y - area_size, center_x + area_size, center_y + area_size), outline=(255, 0, 0))
+  im.save(filename)
+
+  return {imagename: max_rain.replace('-1', '-')}
 
 def access_nowcast(driver, lat, lon):
   driver.set_window_size(1200, 900)
@@ -105,9 +106,8 @@ def access_nowcast(driver, lat, lon):
 
     # page_image = driver.get_screenshot_as_file(image_title+'.png')
     map_image = driver.find_element_by_class_name('jmatile-map').screenshot_as_png
-    forecast = get_forecasts(imagename, map_image)
+    forecast = get_forecasts(imagename, filename, map_image)
     forecasts.update(forecast)
-    save_image_file(filename, map_image)
 
     # 次へ
     try:
