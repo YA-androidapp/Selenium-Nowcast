@@ -28,7 +28,12 @@ def get_nowc():
     else:
         lon = 139.76712
 
-    result = main(lat, lon, False)
+    if request.args.get('page') is not None:
+        page = int(request.args.get('page'))
+    else:
+        page = 13
+
+    result = main(lat, lon, page, False)
     logger.info(result)
     return result, 200
 

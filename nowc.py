@@ -107,7 +107,7 @@ def get_forecasts(imagename, filename, map_image, debug_mode):
     return {imagename: max_rain.replace('-1', '-')}
 
 
-def access_nowcast(driver, lat, lon, debug_mode):
+def access_nowcast(driver, lat, lon, page, debug_mode):
     driver.set_window_size(1200, 900)
     driver.get(nowcast_url % (lat, lon))
     wait = WebDriverWait(driver, 10)
@@ -118,10 +118,11 @@ def access_nowcast(driver, lat, lon, debug_mode):
         pass
 
     forecasts = {}
-    for i in range(13):
+    for i in range(page):
         time.sleep(1)
 
         # 予報の日時を取得
+        print('source', driver.page_source)
         imagename, filename = get_image_filename(wait)
 
         # page_image = driver.get_screenshot_as_file(image_title+'.png')
@@ -138,11 +139,11 @@ def access_nowcast(driver, lat, lon, debug_mode):
     return forecasts
 
 
-def main(lat, lon, debug_mode):
+def main(lat, lon, page, debug_mode):
     driver = driver_preparation(browser_name, debug_mode)
     try:
         result = {'location': {'lat': lat, 'lon': lon}}
-        forecasts = access_nowcast(driver, lat, lon, debug_mode)
+        forecasts = access_nowcast(driver, lat, lon, page, debug_mode)
         result.update({'forecasts': forecasts})
         return result
     finally:
@@ -151,5 +152,5 @@ def main(lat, lon, debug_mode):
 
 if __name__ == '__main__':
     import pyderman
-    result = main(lat, lon, True)
+    result = main(lat, lon, 13, True)
     print('result', result)
