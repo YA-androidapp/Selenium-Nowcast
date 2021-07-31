@@ -14,6 +14,10 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def get():
+    return {'usage': '/nowc?lat=35.68&lon=139.77'}, 200
+
+@app.route('/nowc', methods=['GET'])
+def get_nowc():
     if request.args.get('lat') is not None:
         lat = float(request.args.get('lat'))
     else:

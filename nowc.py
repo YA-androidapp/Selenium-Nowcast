@@ -13,7 +13,7 @@ import time
 
 
 # pixel (60pixel = 500m)
-area_size = 2 * 60  # 経緯度を中心に2km四方
+area_size = 60  # 経緯度を中心に1km四方
 browser_name = 'firefox'
 image_ext = 'png'
 lat = 35.681236
