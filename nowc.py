@@ -59,7 +59,7 @@ def driver_preparation(browser_name, debug_mode):
             driver = webdriver.Firefox(executable_path=driver_path)
     else:
         options = Options()
-        # options.add_argument('--headless')
+        options.add_argument('--headless')
         driver = webdriver.Chrome(options=options)
 
     return driver
