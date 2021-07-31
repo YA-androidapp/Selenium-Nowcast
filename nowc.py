@@ -93,7 +93,6 @@ def get_forecasts(imagename, filename, map_image, debug_mode):
     for y in range(center_y - area_size, center_y + area_size):
         for x in range(center_x - area_size, center_x + area_size):
             rgba = im.getpixel((x, y))
-            # print('r, g, b, a', rgba)
             rain = get_key(notes, rgba)
             if int(max_rain) < int(rain):
                 max_rain = rain
