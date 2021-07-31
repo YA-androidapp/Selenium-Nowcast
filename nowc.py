@@ -111,6 +111,7 @@ def access_nowcast(driver, lat, lon, debug_mode):
     driver.set_window_size(1200, 900)
     driver.get(nowcast_url % (lat, lon))
     wait = WebDriverWait(driver, 10)
+    time.sleep(1)
     clear_ad(wait)
 
     forecasts = {}
