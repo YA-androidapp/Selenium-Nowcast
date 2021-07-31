@@ -119,7 +119,7 @@ def access_nowcast(driver, lat, lon, page, debug_mode):
 
     forecasts = {}
     for i in range(page):
-        time.sleep(1)
+        time.sleep(0.5)
 
         # 予報の日時を取得
         imagename, filename = get_image_filename(wait)
