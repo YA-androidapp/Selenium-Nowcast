@@ -108,7 +108,7 @@ def get_forecasts(imagename, filename, map_image, debug_mode):
 
 
 def access_nowcast(driver, lat, lon, page, debug_mode):
-    driver.set_window_size(1200, 900)
+    driver.set_window_size(600, 600)
     driver.get(nowcast_url % (lat, lon))
     wait = WebDriverWait(driver, 15)
     time.sleep(1)
@@ -119,7 +119,7 @@ def access_nowcast(driver, lat, lon, page, debug_mode):
 
     forecasts = {}
     for i in range(page):
-        time.sleep(0.5)
+        time.sleep(1)
 
         # 予報の日時を取得
         imagename, filename = get_image_filename(wait)
