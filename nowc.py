@@ -112,7 +112,10 @@ def access_nowcast(driver, lat, lon, debug_mode):
     driver.get(nowcast_url % (lat, lon))
     wait = WebDriverWait(driver, 10)
     time.sleep(1)
-    clear_ad(wait)
+    try:
+        clear_ad(wait)
+    except:
+        pass
 
     forecasts = {}
     for i in range(13):
