@@ -34,7 +34,7 @@ notes_win = {
     '80': (180, 0, 104, 255),
     '50': (255, 40, 0, 255),
     '30': (255, 153, 0, 255),
-    '20': (255, 245, 0, 255),
+    '20': (250, 245, 0, 255),
     '10': (0, 65, 255, 255),
     '5': (33, 140, 255, 255),
     '1': (160, 210, 255, 255),
@@ -61,9 +61,9 @@ else:
 def driver_preparation(browser_name, debug_mode):
     if debug_mode:
         if browser_name == 'chrome':
-            info = pyderman.install(browser=pyderman.chrome, chmod=True, overwrite=True, return_info=True)
+            info = pyderman.install(browser=pyderman.chrome, chmod=True, overwrite=False, return_info=True)
         else:
-            info = pyderman.install(browser=pyderman.firefox, chmod=True, overwrite=True, return_info=True)
+            info = pyderman.install(browser=pyderman.firefox, chmod=True, overwrite=False, return_info=True)
 
         if isinstance(info, dict):
             driver_name = info['driver']
@@ -82,6 +82,8 @@ def driver_preparation(browser_name, debug_mode):
 
         options = Options()
         options.add_argument('--headless')
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        options.use_chromium = True
 
         if len(drs) > 0:
             driver = webdriver.Chrome(options=options, executable_path=drs[0])
