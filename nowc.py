@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 import glob
 import math
 import os
+import pyderman
 import sys
 import time
 
@@ -29,7 +30,7 @@ try:
 except:
     pass
 
-notes = {
+notes_win = {
     '80': (180, 0, 104, 255),
     '50': (255, 40, 0, 255),
     '30': (255, 153, 0, 255),
@@ -39,6 +40,22 @@ notes = {
     '1': (160, 210, 255, 255),
     '0': (242, 242, 255, 255)
 }
+
+notes_mac = {
+    '80': (166, 36, 102, 255),
+    '50': (235, 66, 37, 255),
+    '30': (242, 157, 56, 255),
+    '20': (254, 243, 81, 255),
+    '10': (6, 75, 245, 255),
+    '5': (65, 142, 247, 255),
+    '1': (169, 210, 251, 255),
+    '0': (242, 243, 254, 255)
+}
+
+if os.name == 'nt':
+    notes = notes_win
+else:
+    notes = notes_mac
 
 
 def driver_preparation(browser_name, debug_mode):
@@ -158,6 +175,5 @@ def main(lat, lon, page, debug_mode):
 
 
 if __name__ == '__main__':
-    import pyderman
     result = main(lat, lon, 13, True)
     print('result', result)

@@ -8,5 +8,4 @@ python -m pip install --upgrade pip
 python -m pip install selenium Pillow Flask gunicorn flask-cors
 python -m pip install pyderman
 
-python nowc.py
-# python app.py # using Flask
+python app.py

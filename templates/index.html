@@ -33,6 +33,12 @@
 </head>
 
 <body>
+    <div id='control'>
+        <input type="text" id="lat" name="lat" value="" placeholder="Latitude" /><br />
+        <input type="text" id="lon" name="lon" value="" placeholder="Longitude" />
+        <button type="button" id="get_button" name="get_button" onclick="getButtonClicked()">Get</button>
+    </div>
+
     <div id='map'></div>
 
     <div id='location'></div>
@@ -65,7 +71,7 @@
             return queries;
         }
 
-        var notes = {
+        var notes_win = {
             '80': '(180, 0, 104, 1)',
             '50': '(255, 40, 0, 1)',
             '30': '(255, 153, 0, 1)',
@@ -113,12 +119,15 @@
         }
 
         function ajax_forecast(lat, lon) {
+            document.getElementById('get_button').disabled = true;
+
             // axios.get('./sample.json')
             axios.get('/nowc?lat=' + String(lat) + '&lon=' + String(lon))
                 .then(function (response) {
                     console.log('then');
                     console.log('response', response);
 
+                    document.getElementsByTagName('tbody')[0].innerHTML = "";
                     var forecasts = response.data.forecasts;
                     console.log('forecasts', forecasts);
                     forecasts.forEach(function (item) {
@@ -143,14 +152,23 @@
                         zoom: 13,
                     });
 
-                    document.getElementById('location').insertAdjacentHTML('beforeend', location.lat + ', ' + location.lon)
+                    document.getElementById('location').innerHTML = location.lat + ', ' + location.lon;
+                    document.getElementById('lat').value = location.lat;
+                    document.getElementById('lon').value = location.lon;
                 })
                 .catch(function (error) {
                     console.log('catch', error);
                 })
                 .then(function () {
                     console.log('then');
+                    document.getElementById('get_button').disabled = false;
                 });
+        }
+
+        function getButtonClicked() {
+            var lat = document.getElementById("lat").value,
+                lon = document.getElementById("lon").value;
+            ajax_forecast(lat, lon);
         }
 
         function onload() {
@@ -163,8 +181,8 @@
                 lon = getUrlQueries()['lon'];
 
                 console.log("getUrlQueries", { "lat": lat, "lon": lon });
-                init_map(latlon.lat, latlon.lon);
-                ajax_forecast(latlon.lat, latlon.lon);
+                init_map(lat, lon);
+                ajax_forecast(lat, lon);
             } else if (navigator.geolocation) {
                 console.log("navigator.geolocation");
                 navigator.geolocation.getCurrentPosition(
