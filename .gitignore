@@ -2,6 +2,7 @@
 *.png
 
 .idea
+.vscode/
 
 lib/
 seleenv/

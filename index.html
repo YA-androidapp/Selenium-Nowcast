@@ -1,0 +1,162 @@
+<!--
+    $ python .\app.py
+    /index.html?lat=35.0&lon=139.0
+-->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8' />
+    <title>Map</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src='https://gsi-cyberjapan.github.io/gsivectortile-mapbox-gl-js/mapbox/1.8.1/mapbox-gl.js'></script>
+    <link href='https://gsi-cyberjapan.github.io/gsivectortile-mapbox-gl-js/mapbox/1.8.1/mapbox-gl.css'
+        rel='stylesheet' />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 300px;
+            width: 300px;
+        }
+
+        #location {
+            text-align: right;
+            width: 300px;
+        }
+
+        #rain {
+            height: 300px;
+            width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id='map'></div>
+
+    <div id='location'></div>
+
+    <table id="rain">
+        <thead>
+            <tr>
+                <th>時刻</th>
+                <th>降水量</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <script>
+        function getUrlQueries() {
+            var queryStr = window.location.search.slice(1);
+            queries = {};
+            if (!queryStr) {
+                return queries;
+            }
+
+            queryStr.split('&').forEach(function (queryStr) {
+                var queryArr = queryStr.split('=');
+                queries[queryArr[0]] = queryArr[1];
+            });
+
+            // console.log("queries", queries)
+            return queries;
+        }
+
+        var lat = getUrlQueries()['lat'] ? getUrlQueries()['lat'] : 35.060107,
+            lon = getUrlQueries()['lon'] ? getUrlQueries()['lon'] : 139.055758;
+        var notes = {
+            '80': '(180, 0, 104, 1)',
+            '50': '(255, 40, 0, 1)',
+            '30': '(255, 153, 0, 1)',
+            '20': '(255, 245, 0, 1)',
+            '10': '(0, 65, 255, 1)',
+            '5': '(33, 140, 255, 1)',
+            '1': '(160, 210, 255, 1)',
+            '0': '(242, 242, 255, 1)'
+        }
+
+        function getTimeStringFromDate(date) {
+            // var year_str = date.getFullYear();
+            // var month_str = 1 + date.getMonth();
+            // var day_str = date.getDate();
+            var hour_str = date.getHours();
+            var minute_str = date.getMinutes();
+            var second_str = date.getSeconds();
+
+            // format_str = 'YYYY-MM-DD hh:mm:ss';
+            format_str = 'hh:mm';
+            // format_str = format_str.replace(/YYYY/g, year_str);
+            // format_str = format_str.replace(/MM/g, month_str);
+            // format_str = format_str.replace(/DD/g, day_str);
+            format_str = format_str.replace(/hh/g, hour_str);
+            format_str = format_str.replace(/mm/g, minute_str);
+            // format_str = format_str.replace(/ss/g, second_str);
+
+            return format_str;
+        }
+
+        var map = new mapboxgl.Map({
+            container: 'map',
+            hash: true,
+            style: 'https://gsi-cyberjapan.github.io/gsivectortile-mapbox-gl-js/std.json', //style.jsonへのパス
+            center: [lon, lat],
+            zoom: 13,
+            maxZoom: 13,
+            minZoom: 2,
+            localIdeographFontFamily: false
+            //  localIdeographFontFamily: ['MS Gothic', 'Hiragino Kaku Gothic Pro', 'sans-serif']
+        });
+        map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+        map.addControl(new mapboxgl.ScaleControl());
+
+        // axios.get('./sample.json')
+        axios.get('http://192.168.0.14:5000/nowc?lat=' + String(lat) + '&lon=' + String(lon))
+            .then(function (response) {
+                console.log('then');
+                console.log('response', response);
+
+                var forecasts = response.data.forecasts;
+                console.log('forecasts', forecasts);
+                forecasts.forEach(function (item) {
+                    console.log('forecasts currentValue', item)
+                    var timeStr = (Object.keys(item)[0]).slice(-6, -4) + ":" + (Object.keys(item)[0]).slice(-4, -2);
+                    var rain = Object.values(item)[0];
+                    var color = rain == "-" ? "" : " background-color: rgba" + notes[rain] + ";";
+                    document.getElementsByTagName('tbody')[0].insertAdjacentHTML(
+                        'beforeend',
+                        '<td style="width:100px;">' + timeStr + '</td>' +
+                        '<td style="text-align:right;width:50px;' + color + '">' + rain + '</td>'
+                    );
+                });
+
+                var location = response.data.location;
+                console.log('location', location);
+                map.flyTo({
+                    center: [
+                        location.lon,
+                        location.lat
+                    ],
+                    zoom: 13,
+                });
+
+                document.getElementById('location').insertAdjacentHTML('beforeend', location.lat + ', ' + location.lon)
+            })
+            .catch(function (error) {
+                console.log('catch', error);
+            })
+            .then(function () {
+                console.log('then');
+            });
+    </script>
+
+</body>
+
+</html>

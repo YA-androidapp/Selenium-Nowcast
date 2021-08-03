@@ -2,6 +2,7 @@ import logging
 import os
 
 from flask import Flask, request
+from flask_cors import CORS
 
 from nowc import main
 
@@ -9,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-
+CORS(app)
 
 @app.route('/', methods=['GET'])
 def get():

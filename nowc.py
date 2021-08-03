@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
+import glob
 import math
 import os
 import sys
@@ -13,12 +14,13 @@ import time
 
 
 # pixel (60pixel = 500m)
-area_size = 60  # 経緯度を中心に1km四方
-browser_name = 'firefox'
+area_size = 2 * 60  # 経緯度を中心に2km四方
+browser_name = 'chrome'
 image_ext = 'png'
 lat = 35.681236
 lon = 139.76712
 nowcast_url = 'https://www.jma.go.jp/bosai/nowc/#zoom:14/lat:%f/lon:%f/colordepth:deep/elements:hrpns'
+window_size = 800
 
 try:
     if len(sys.argv) == 3:
@@ -42,9 +44,9 @@ notes = {
 def driver_preparation(browser_name, debug_mode):
     if debug_mode:
         if browser_name == 'chrome':
-            info = pyderman.install(browser=pyderman.chrome, chmod=True, overwrite=False, return_info=True)
+            info = pyderman.install(browser=pyderman.chrome, chmod=True, overwrite=True, return_info=True)
         else:
-            info = pyderman.install(browser=pyderman.firefox, chmod=True, overwrite=False, return_info=True)
+            info = pyderman.install(browser=pyderman.firefox, chmod=True, overwrite=True, return_info=True)
 
         if isinstance(info, dict):
             driver_name = info['driver']
@@ -58,9 +60,16 @@ def driver_preparation(browser_name, debug_mode):
         elif driver_name == 'geckodriver':
             driver = webdriver.Firefox(executable_path=driver_path)
     else:
+        import glob
+        drs = glob.glob('lib/chromedriver*')
+
         options = Options()
         options.add_argument('--headless')
-        driver = webdriver.Chrome(options=options)
+
+        if len(drs) > 0:
+            driver = webdriver.Chrome(options=options, executable_path=drs[0])
+        else:
+            driver = webdriver.Chrome(options=options)
 
     return driver
 
@@ -107,7 +116,7 @@ def get_forecasts(imagename, filename, map_image, debug_mode):
 
 
 def access_nowcast(driver, lat, lon, page, debug_mode):
-    driver.set_window_size(600, 600)
+    driver.set_window_size(window_size, window_size)
     driver.get(nowcast_url % (lat, lon))
     wait = WebDriverWait(driver, 15)
     time.sleep(1)
@@ -116,7 +125,7 @@ def access_nowcast(driver, lat, lon, page, debug_mode):
     except:
         pass
 
-    forecasts = {}
+    forecasts = []
     for i in range(page):
         time.sleep(1)
 
@@ -126,7 +135,7 @@ def access_nowcast(driver, lat, lon, page, debug_mode):
         # page_image = driver.get_screenshot_as_file(image_title+'.png')
         map_image = driver.find_element_by_class_name('jmatile-map').screenshot_as_png
         forecast = get_forecasts(imagename, filename, map_image, debug_mode)
-        forecasts.update(forecast)
+        forecasts.append(forecast)
 
         # 次へ
         try:
