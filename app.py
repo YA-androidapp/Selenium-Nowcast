@@ -1,7 +1,7 @@
 import logging
 import os
 
-from flask import Flask, request
+from flask import Flask, render_template, request
 from flask_cors import CORS
 
 from nowc import main
@@ -14,7 +14,8 @@ CORS(app)
 
 @app.route('/', methods=['GET'])
 def get():
-    return {'usage': '/nowc?lat=35.68&lon=139.77&page=5'}, 200
+    # return {'usage': '/nowc?lat=35.68&lon=139.77&page=5'}, 200
+    return render_template('index.html')
 
 @app.route('/nowc', methods=['GET'])
 def get_nowc():
