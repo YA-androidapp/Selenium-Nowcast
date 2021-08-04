@@ -14,7 +14,6 @@ CORS(app)
 
 @app.route('/', methods=['GET'])
 def get():
-    # return {'usage': '/nowc?lat=35.68&lon=139.77&page=5'}, 200
     return render_template('index.html')
 
 @app.route('/nowc', methods=['GET'])
@@ -34,8 +33,13 @@ def get_nowc():
     else:
         page = 13
 
-    result = main(lat, lon, page, False)
-    logger.info(result)
+    if request.args.get('debug') is not None and request.args.get('debug') == '1':
+        debug = True
+    else:
+        debug = False
+
+    result = main(lat, lon, page, debug)
+    # logger.info(result)
     return result, 200
 
 if __name__ == '__main__':

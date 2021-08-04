@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
+import base64
 import glob
 import math
 import os
@@ -125,13 +126,18 @@ def get_forecasts(imagename, filename, map_image, debug_mode):
             if int(max_rain) < int(rain):
                 max_rain = rain
 
+    img_base64 = None
     if debug_mode:
         draw = ImageDraw.Draw(im)
         draw.rectangle((center_x - area_size, center_y - area_size, center_x + area_size, center_y + area_size),
                        outline=(255, 0, 0))
         im.save(filename)
 
-    return {imagename: max_rain.replace('-1', '-')}
+        buffer = BytesIO()
+        im.save(buffer, format='png')
+        img_base64 = 'data:image/png;base64,' + base64.b64encode(buffer.getvalue()).decode('ascii')
+
+    return {imagename: max_rain.replace('-1', '-'), 'image': img_base64}
 
 
 def access_nowcast(driver, lat, lon, page, debug_mode):
@@ -178,4 +184,4 @@ def main(lat, lon, page, debug_mode):
 
 if __name__ == '__main__':
     result = main(lat, lon, 13, True)
-    print('result', result)
+    # print('result', result)
