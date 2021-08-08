@@ -28,17 +28,24 @@ def get_nowc():
     else:
         lon = 139.76712
 
+    if request.args.get('mode') is not None and request.args.get('mode') == 'kotan':
+        mode = 'kotan'
+        page_default = 16
+    else:
+        mode = 'nowcast'
+        page_default = 13
+
     if request.args.get('page') is not None:
         page = int(request.args.get('page'))
     else:
-        page = 13
+        page = page_default
 
     if request.args.get('debug') is not None and request.args.get('debug') == '1':
         debug = True
     else:
         debug = False
 
-    result = main(lat, lon, page, debug)
+    result = main(lat, lon, page, mode, debug)
     # logger.info(result)
     return result, 200
 

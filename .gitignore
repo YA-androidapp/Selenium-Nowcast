@@ -1,5 +1,6 @@
 *.log
-./*.png
+kotan_*.png
+nowcast_*.png
 
 .idea
 .vscode/

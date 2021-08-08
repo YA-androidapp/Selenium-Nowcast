@@ -22,6 +22,7 @@ image_ext = 'png'
 lat = 35.681236
 lon = 139.76712
 nowcast_url = 'https://www.jma.go.jp/bosai/nowc/#zoom:14/lat:%f/lon:%f/colordepth:deep/elements:hrpns'
+kotan_url = 'https://www.jma.go.jp/bosai/kaikotan/#lat:%f/lon:%f/zoom:14/colordepth:deep/elements:rasrf'
 window_size = 800
 
 try:
@@ -29,7 +30,7 @@ try:
         lat = float(sys.argv[1])
         lon = float(sys.argv[2])
 except:
-    pass
+    print('sys.arg', 'except')
 
 notes_win = {
     '80': (180, 0, 104, 255),
@@ -84,6 +85,7 @@ def driver_preparation(browser_name, debug_mode):
         options = Options()
         options.add_argument('--headless')
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        options.add_experimental_option("excludeSwitches", ['enable-automation'])
         options.use_chromium = True
 
         if len(drs) > 0:
@@ -99,12 +101,12 @@ def clear_ad(wait):
     ad_block_button.click()
 
 
-def get_image_filename(wait):
+def get_image_filename(wait, mode):
     map_title = wait.until(
         expected_conditions.visibility_of_element_located((By.CLASS_NAME, 'jmatile-map-title-validtime')))
-    image_title = map_title.text
+    image_title = map_title.text.replace('まで', '')
     imagename = datetime.strptime(image_title, '%Y年%m月%d日%H時%M分').strftime('%Y%m%d%H%M00')
-    filename = '%f_%f_%s.%s' % (lat, lon, image_title, image_ext)
+    filename = '%s_%f_%f_%s.%s' % (mode, lat, lon, image_title, image_ext)
     return (imagename, filename)
 
 
@@ -140,22 +142,25 @@ def get_forecasts(imagename, filename, map_image, debug_mode):
     return {imagename: max_rain.replace('-1', '-'), 'image': img_base64}
 
 
-def access_nowcast(driver, lat, lon, page, debug_mode):
+def access_nowcast(driver, lat, lon, page, mode, debug_mode):
     driver.set_window_size(window_size, window_size)
-    driver.get(nowcast_url % (lat, lon))
+    if mode == 'kotan':
+        driver.get(kotan_url % (lat, lon))
+    else:
+        driver.get(nowcast_url % (lat, lon))
     wait = WebDriverWait(driver, 15)
     time.sleep(1)
     try:
         clear_ad(wait)
     except:
-        pass
+        print('access_nowcast', 'except')
 
     forecasts = []
     for i in range(page):
         time.sleep(1)
 
         # 予報の日時を取得
-        imagename, filename = get_image_filename(wait)
+        imagename, filename = get_image_filename(wait, mode)
 
         # page_image = driver.get_screenshot_as_file(image_title+'.png')
         map_image = driver.find_element_by_class_name('jmatile-map').screenshot_as_png
@@ -165,17 +170,18 @@ def access_nowcast(driver, lat, lon, page, debug_mode):
         # 次へ
         try:
             driver.find_elements_by_css_selector('[id^=jmatile_time_next_')[0].click()
-        except:
-            pass
+        except Exception as e:
+            # print('jmatile_time_next_', 'except', e)
+            break
 
     return forecasts
 
 
-def main(lat, lon, page, debug_mode):
+def main(lat, lon, page, mode, debug_mode):
     driver = driver_preparation(browser_name, debug_mode)
     try:
         result = {'location': {'lat': lat, 'lon': lon}}
-        forecasts = access_nowcast(driver, lat, lon, page, debug_mode)
+        forecasts = access_nowcast(driver, lat, lon, page, mode, debug_mode)
         result.update({'forecasts': forecasts})
         return result
     finally:
@@ -183,5 +189,5 @@ def main(lat, lon, page, debug_mode):
 
 
 if __name__ == '__main__':
-    result = main(lat, lon, 13, True)
+    result = main(lat, lon, 16, 'kotan', True)
     # print('result', result)

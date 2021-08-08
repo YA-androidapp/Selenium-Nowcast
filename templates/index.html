@@ -23,6 +23,14 @@
         #location {
             text-align: right;
         }
+
+        input#lat {
+            width: 50%;
+        }
+
+        input#lon {
+            width: 50%;
+        }
     </style>
 </head>
 
@@ -32,9 +40,11 @@
             <div class="card" style="width: 320px;">
                 <div class="card-body">
                     <div id='control'>
-                        <input type="text" id="lat" name="lat" value="" placeholder="Latitude" /><br />
+                        <input type="text" id="lat" name="lat" value="" placeholder="Latitude" />
+                        <input type="checkbox" id="mode" name="mode" value="kotan" title="降水短時間予報" />
+                        <input type="checkbox" id="debug" name="debug" value="1" title="Debug" />
+                        <br />
                         <input type="text" id="lon" name="lon" value="" placeholder="Longitude" />
-                        <input type="checkbox" id="debug" name="debug" value="1" />
                         <button type="button" id="get_button" name="get_button"
                             onclick="getButtonClicked()">Get</button>
                         <img id="spinner" alt="" style="width:32px;height:32px;"
@@ -129,12 +139,12 @@
             map.addControl(new mapboxgl.ScaleControl());
         }
 
-        function ajax_forecast(lat, lon, debug) {
+        function ajax_forecast(lat, lon, mode, debug) {
             document.getElementById('get_button').disabled = true;
             document.getElementById('spinner').style.visibility = "visible";
 
             // axios.get('./sample.json')
-            axios.get('/nowc?lat=' + String(lat) + '&lon=' + String(lon) + '&debug=' + String(debug))
+            axios.get('/nowc?lat=' + String(lat) + '&lon=' + String(lon) + "&mode=" + mode + '&debug=' + String(debug))
                 .then(function (response) {
                     console.log('then');
                     console.log('response', response);
@@ -181,26 +191,37 @@
         function getButtonClicked() {
             var lat = document.getElementById("lat").value,
                 lon = document.getElementById("lon").value,
-                debug = document.getElementById("debug").value;
-            ajax_forecast(lat, lon, debug);
+                mode = document.getElementById("mode").checked ? "kotan" : "nowcast",
+                debug = document.getElementById("debug").checked ? "1" : "";
+            ajax_forecast(lat, lon, mode, debug);
         }
 
         function onload() {
             console.log("onload");
             var lat = 35.060107,
                 lon = 139.055758,
+                mode = "",
                 debug = "";
             if (getUrlQueries()['lat'] && getUrlQueries()['lon']) {
                 console.log("getUrlQueries");
                 lat = getUrlQueries()['lat'];
                 lon = getUrlQueries()['lon'];
+                if (getUrlQueries()['mode']) {
+                    mode = getUrlQueries()['mode'] == "kotan" ? "kotan" : "nowcast";
+                    if (mode == "kotan") {
+                        document.getElementById("mode").checked = true
+                    }
+                }
                 if (getUrlQueries()['debug']) {
                     debug = getUrlQueries()['debug'] == "1" ? "1" : "";
+                    if (debug == "1") {
+                        document.getElementById("debug").checked = true
+                    }
                 }
 
-                console.log("getUrlQueries", { "lat": lat, "lon": lon, "debug": debug });
+                console.log("getUrlQueries", { "lat": lat, "lon": lon, "mode": mode, "debug": debug });
                 init_map(lat, lon);
-                ajax_forecast(lat, lon, debug);
+                ajax_forecast(lat, lon, mode, debug);
             } else if (navigator.geolocation) {
                 console.log("navigator.geolocation");
                 navigator.geolocation.getCurrentPosition(
@@ -208,13 +229,22 @@
                         console.log("position", position);
                         lat = position.coords.latitude;
                         lon = position.coords.longitude;
+                        if (getUrlQueries()['mode']) {
+                            mode = getUrlQueries()['mode'] == "kotan" ? "kotan" : "nowcast";
+                            if (mode == "kotan") {
+                                document.getElementById("mode").checked = true
+                            }
+                        }
                         if (getUrlQueries()['debug']) {
                             debug = getUrlQueries()['debug'] == "1" ? "1" : "";
+                            if (debug == "1") {
+                                document.getElementById("debug").checked = true
+                            }
                         }
 
-                        console.log("GPS", { "lat": lat, "lon": lon, "debug": debug });
+                        console.log("GPS", { "lat": lat, "lon": lon, "mode": mode, "debug": debug });
                         init_map(lat, lon);
-                        ajax_forecast(lat, lon, debug);
+                        ajax_forecast(lat, lon, mode, debug);
                     },
                     function errorCallback(positionError) {
                         console.log("positionError", positionError);
